@@ -11,27 +11,27 @@ on:
 jobs:
   scheduled:
     runs-on: ubuntu-latest
-		steps: 
+    steps: 
       - name: Check out repo
         uses: actions/checkout@v2
-			- name: Install jq
-				run: apt install jq
+      - name: Install jq
+        run: apt install jq
       - name: Get data
-				run: |-
-					curl -s http://download.companieshouse.gov.uk/persons-with-significant-control-snapshot-$(date +'%Y-%m-%d').zip |
-  					funzip |
-  					jq -r '
-    					select(.data.nationality == ("Lithuanian", "Latvian", "Estonian")) |
-    					[
-      					.company_number,
-      					.data.name_elements.forename,
-      					.data.name_elements.surname,
-      					.data.nationality,
-      					.data.date_of_birth.year,
-      					.data.date_of_birth.month,
-      					.data.notified_on
-    					] |
-    					@csv' > psc.csv
+        run: |-
+          curl -s http://download.companieshouse.gov.uk/persons-with-significant-control-snapshot-$(date +'%Y-%m-%d').zip |
+            funzip |
+            jq -r '
+              select(.data.nationality == ("Lithuanian", "Latvian", "Estonian")) |
+              [
+                .company_number,
+                .data.name_elements.forename,
+                .data.name_elements.surname,
+                .data.nationality,
+                .data.date_of_birth.year,
+                .data.date_of_birth.month,
+                .data.notified_on
+              ] |
+              @csv' > psc.csv
       - name: Commit results
           git config --global user.name 'Companies House data checker'
           git config --global user.email 'louisgoddard@gmail.com'
