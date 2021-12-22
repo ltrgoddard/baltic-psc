@@ -33,6 +33,7 @@ jobs:
               ] |
               @csv' > psc.csv
       - name: Commit results
+        run: |-
           git config --global user.name 'Companies House data checker'
           git config --global user.email 'louisgoddard@gmail.com'
           git add psc.csv
