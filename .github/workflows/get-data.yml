@@ -1,0 +1,41 @@
+name: Get data
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '51 10 * * *'
+
+jobs:
+  scheduled:
+    runs-on: ubuntu-latest
+		steps: 
+      - name: Check out repo
+        uses: actions/checkout@v2
+			- name: Install jq
+				run: apt install jq
+      - name: Get data
+				run: |-
+					curl -s http://download.companieshouse.gov.uk/persons-with-significant-control-snapshot-$(date +'%Y-%m-%d').zip |
+  					funzip |
+  					jq -r '
+    					select(.data.nationality == ("Lithuanian", "Latvian", "Estonian")) |
+    					[
+      					.company_number,
+      					.data.name_elements.forename,
+      					.data.name_elements.surname,
+      					.data.nationality,
+      					.data.date_of_birth.year,
+      					.data.date_of_birth.month,
+      					.data.notified_on
+    					] |
+    					@csv' > psc.csv
+      - name: Commit results
+          git config --global user.name 'Companies House data checker'
+          git config --global user.email 'louisgoddard@gmail.com'
+          git add psc.csv
+          timestamp=$(date -u)
+          git commit -m "Date updated at ${timestamp}" || exit 0
+          git push
